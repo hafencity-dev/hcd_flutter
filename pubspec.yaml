@@ -1,7 +1,7 @@
 name: hcd
-description: "A new Flutter package project."
+description: "HCD Flutter"
 version: 0.0.1
-homepage:
+homepage: https://github.com/hafencity-dev/hcd
 
 environment:
   sdk: ">=3.5.0-180.3.beta <4.0.0"

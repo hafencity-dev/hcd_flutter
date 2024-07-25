@@ -1,39 +1,55 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# HCD Flutter Package
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+HCD Flutter is a proprietary Flutter package that provides a collection of utility classes, extensions, and widgets to streamline Flutter development.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Utility Classes**: AppLogger, DialogUtils, and more.
+- **Extensions**: String, DateTime, Color, Number, and Iterable extensions.
+- **Widgets**: Multi-stream BLoC widgets and more.
+- **Models**: Base model and example model with Freezed integration.
+- **Localization**: AppLocalizations for easy internationalization.
 
-## Getting started
+## Important Notice
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+This package is proprietary and not licensed for public use. It is intended for internal use only within authorized projects.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
 ```dart
-const like = 'sample';
+import 'package:hcd/hcd.dart';
 ```
 
-## Additional information
+### Examples
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+1. Using AppLogger:
+
+```dart
+await AppLogger.initialize();
+AppLogger.info('This is an info message');
+```
+
+2. Using String extensions:
+
+```dart
+String text = 'hello world';
+print(text.capitalize()); // Output: Hello world
+```
+
+3. Using Color extensions:
+
+```dart
+Color color = Colors.blue;
+Color lighterBlue = color.lighten();
+```
+
+4. Using DateTime extensions:
+
+```dart
+DateTime now = DateTime.now();
+print(now.format(format: 'dd/MM/yyyy'));
+```
+
+## No License
+
+This package is not licensed for public use. All rights are reserved.
