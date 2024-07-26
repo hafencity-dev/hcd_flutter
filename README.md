@@ -22,7 +22,7 @@ Add the following to your `pubspec.yaml` file:
 dependencies:
   hcd:
     git:
-      url: https://github.com/hafencity-dev/hcd-flutter.git
+      url: https://github.com/hafencity-dev/hcd_flutter.git
       ref: main # or specify a tag/commit
 ```
 
