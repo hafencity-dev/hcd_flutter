@@ -8,6 +8,7 @@ export 'utils/dialog_utils.dart';
 export 'models/base_model.dart';
 
 // Extensions
+export 'utils/extensions/widget_extensions.dart';
 export 'utils/extensions/string_extensions.dart';
 export 'utils/extensions/number_extensions.dart';
 export 'utils/extensions/iterable_extensions.dart';
