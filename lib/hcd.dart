@@ -4,6 +4,9 @@ library hcd;
 export 'utils/utils.dart';
 export 'utils/dialog_utils.dart';
 
+// Models
+export 'models/base_model.dart';
+
 // Extensions
 export 'utils/extensions/string_extensions.dart';
 export 'utils/extensions/number_extensions.dart';

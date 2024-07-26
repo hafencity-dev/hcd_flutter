@@ -14,6 +14,24 @@ HCD Flutter is a proprietary Flutter package that provides a collection of utili
 
 This package is proprietary and not licensed for public use. It is intended for internal use only within authorized projects.
 
+## Installation
+
+Add the following to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  hcd:
+    git:
+      url: https://github.com/hafencity-dev/hcd-flutter.git
+      ref: main # or specify a tag/commit
+```
+
+Then run:
+
+```
+flutter pub get
+```
+
 ## Usage
 
 ```dart
