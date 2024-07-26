@@ -1,45 +1,74 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
+/// Extension on [DateTime] to provide additional functionality and formatting options.
 extension DateTimeExtensions on DateTime {
+  /// Formats the [DateTime] instance to a string representation.
+  ///
+  /// [format] - Optional custom format string. Defaults to 'yyyy-MM-dd'.
+  /// [locale] - Optional locale for localization.
+  ///
+  /// Returns a formatted string representation of the date.
   String format({String? format, Locale? locale}) {
     final formatter = DateFormat(format ?? 'yyyy-MM-dd', locale?.languageCode);
     return formatter.format(this);
   }
 
+  /// Checks if this [DateTime] is on the same day as [other].
+  ///
+  /// Returns true if the year, month, and day are the same, false otherwise.
   bool isSameDay(DateTime other) {
     return year == other.year && month == other.month && day == other.day;
   }
 
+  /// Returns a new [DateTime] set to the start of the current day (00:00:00).
   DateTime get startOfDay => DateTime(year, month, day);
 
+  /// Returns a new [DateTime] set to the end of the current day (23:59:59.999).
   DateTime get endOfDay => DateTime(year, month, day, 23, 59, 59, 999);
 
+  /// Checks if this [DateTime] is between [start] and [end], exclusive.
+  ///
+  /// Returns true if this date is after [start] and before [end], false otherwise.
   bool isBetween(DateTime start, DateTime end) {
     return isAfter(start) && isBefore(end);
   }
 
+  /// Calculates the absolute difference in days between this [DateTime] and [other].
+  ///
+  /// Returns the absolute number of days between the two dates.
   int differenceInDays(DateTime other) {
     return difference(other).inDays.abs();
   }
 
-  // New methods
+  /// Checks if this [DateTime] is today.
   bool get isToday => isSameDay(DateTime.now());
 
+  /// Checks if this [DateTime] is yesterday.
   bool get isYesterday =>
       isSameDay(DateTime.now().subtract(const Duration(days: 1)));
 
+  /// Checks if this [DateTime] is tomorrow.
   bool get isTomorrow => isSameDay(DateTime.now().add(const Duration(days: 1)));
 
+  /// Returns a new [DateTime] set to the start of the current week.
   DateTime get startOfWeek => subtract(Duration(days: weekday - 1)).startOfDay;
 
+  /// Returns a new [DateTime] set to the end of the current week.
   DateTime get endOfWeek =>
       add(Duration(days: DateTime.daysPerWeek - weekday)).endOfDay;
 
+  /// Returns a new [DateTime] set to the start of the current month.
   DateTime get startOfMonth => DateTime(year, month);
 
+  /// Returns a new [DateTime] set to the end of the current month.
   DateTime get endOfMonth => DateTime(year, month + 1, 0, 23, 59, 59, 999);
 
+  /// Formats the [DateTime] as a human-readable time ago string.
+  ///
+  /// [locale] - Optional locale for localization.
+  ///
+  /// Returns a string representing the time elapsed since this date.
   String timeAgo({Locale? locale}) {
     final now = DateTime.now();
     final difference = now.difference(this);
@@ -63,18 +92,32 @@ extension DateTimeExtensions on DateTime {
     }
   }
 
+  /// Formats the [DateTime] to a localized string representation.
+  ///
+  /// [locale] - Optional locale for localization.
+  ///
+  /// Returns a localized string representation of the date and time.
   String toLocalizedString({Locale? locale}) {
     final language = locale?.languageCode ?? 'en';
     final formatter = DateFormat.yMMMd(language).add_jm();
     return formatter.format(this);
   }
 
+  /// Checks if this [DateTime] falls on a weekend (Saturday or Sunday).
+  ///
+  /// Returns true if the date is a weekend, false otherwise.
   bool isWeekend() {
     return weekday == DateTime.saturday || weekday == DateTime.sunday;
   }
 
+  /// Returns the quarter (1-4) of the year for this [DateTime].
   int get quarter => (month - 1) ~/ 3 + 1;
 
+  /// Adds the specified number of workdays to this [DateTime].
+  ///
+  /// [days] - The number of workdays to add.
+  ///
+  /// Returns a new [DateTime] with the workdays added, skipping weekends.
   DateTime addWorkdays(int days) {
     var date = this;
     while (days > 0) {
@@ -87,6 +130,11 @@ extension DateTimeExtensions on DateTime {
   }
 }
 
+/// Returns a map of localized messages for the timeAgo function.
+///
+/// [languageCode] - The ISO 639-1 language code.
+///
+/// Returns a map of localized time-related messages.
 Map<String, String> _getTimeAgoMessages(String languageCode) {
   switch (languageCode) {
     case 'es':

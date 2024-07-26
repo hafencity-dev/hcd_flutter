@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 
+/// A utility class that provides various dialog and notification methods for Flutter applications.
 class DialogUtils {
+  /// Shows a custom dialog with fade and scale animations.
+  ///
+  /// [context] The build context.
+  /// [child] The widget to be displayed in the dialog.
+  /// [barrierDismissible] Whether the dialog can be dismissed by tapping outside.
+  /// [barrierColor] The color of the barrier behind the dialog.
+  ///
+  /// Returns a Future that completes with the dialog's result.
   static Future<T?> showCustomDialog<T>({
     required BuildContext context,
     required Widget child,
@@ -24,6 +33,19 @@ class DialogUtils {
     );
   }
 
+  /// Shows a confirmation dialog with customizable text and styles.
+  ///
+  /// [context] The build context.
+  /// [title] The title of the dialog.
+  /// [message] The message to be displayed in the dialog.
+  /// [confirmText] The text for the confirm button.
+  /// [cancelText] The text for the cancel button.
+  /// [titleTextStyle] The text style for the title.
+  /// [messageTextStyle] The text style for the message.
+  /// [confirmTextStyle] The text style for the confirm button.
+  /// [cancelTextStyle] The text style for the cancel button.
+  ///
+  /// Returns a Future<bool?> that completes with true if confirmed, false if cancelled.
   static Future<bool?> showConfirmationDialog({
     required BuildContext context,
     required String title,
@@ -54,6 +76,14 @@ class DialogUtils {
     );
   }
 
+  /// Shows a snackbar with customizable properties.
+  ///
+  /// [context] The build context.
+  /// [message] The message to be displayed in the snackbar.
+  /// [duration] The duration for which the snackbar is visible.
+  /// [action] An optional action for the snackbar.
+  /// [textStyle] The text style for the message.
+  /// [backgroundColor] The background color of the snackbar.
   static void showSnackBar({
     required BuildContext context,
     required String message,
@@ -72,6 +102,12 @@ class DialogUtils {
     );
   }
 
+  /// Shows a loading dialog with a circular progress indicator.
+  ///
+  /// [context] The build context.
+  /// [message] The message to be displayed below the progress indicator.
+  /// [messageTextStyle] The text style for the message.
+  /// [progressIndicatorColor] The color of the progress indicator.
   static Future<void> showLoadingDialog({
     required BuildContext context,
     String message = 'Loading...',
@@ -82,8 +118,8 @@ class DialogUtils {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: AlertDialog(
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -92,7 +128,7 @@ class DialogUtils {
                   valueColor: AlwaysStoppedAnimation<Color?>(
                       progressIndicatorColor ?? Theme.of(context).primaryColor),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(message, style: messageTextStyle),
               ],
             ),
@@ -102,6 +138,13 @@ class DialogUtils {
     );
   }
 
+  /// Shows a toast message overlay.
+  ///
+  /// [context] The build context.
+  /// [message] The message to be displayed in the toast.
+  /// [duration] The duration for which the toast is visible.
+  /// [textStyle] The text style for the message.
+  /// [backgroundColor] The background color of the toast.
   static void showToast({
     required BuildContext context,
     required String message,
@@ -118,14 +161,15 @@ class DialogUtils {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Text(
               message,
-              style: textStyle ?? TextStyle(color: Colors.white, fontSize: 14),
+              style: textStyle ??
+                  const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ),
         ),
@@ -136,6 +180,17 @@ class DialogUtils {
     Future.delayed(duration, () => overlayEntry.remove());
   }
 
+  /// Shows a success dialog with a checkmark icon.
+  ///
+  /// [context] The build context.
+  /// [title] The title of the dialog.
+  /// [message] The message to be displayed in the dialog.
+  /// [buttonText] The text for the dismiss button.
+  /// [titleTextStyle] The text style for the title.
+  /// [messageTextStyle] The text style for the message.
+  /// [buttonTextStyle] The text style for the button.
+  /// [iconColor] The color of the checkmark icon.
+  /// [iconSize] The size of the checkmark icon.
   static Future<void> showSuccessDialog({
     required BuildContext context,
     required String title,
@@ -156,7 +211,7 @@ class DialogUtils {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.check_circle, color: iconColor, size: iconSize),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(message, style: messageTextStyle),
             ],
           ),
@@ -171,6 +226,16 @@ class DialogUtils {
     );
   }
 
+  /// Shows a bottom sheet with customizable properties.
+  ///
+  /// [context] The build context.
+  /// [child] The widget to be displayed in the bottom sheet.
+  /// [isDismissible] Whether the bottom sheet can be dismissed by tapping outside.
+  /// [backgroundColor] The background color of the bottom sheet.
+  /// [elevation] The elevation of the bottom sheet.
+  /// [shape] The shape of the bottom sheet.
+  ///
+  /// Returns a Future that completes with the bottom sheet's result.
   static Future<T?> showBottomSheet<T>({
     required BuildContext context,
     required Widget child,
@@ -186,7 +251,7 @@ class DialogUtils {
       backgroundColor: backgroundColor,
       elevation: elevation,
       shape: shape ??
-          RoundedRectangleBorder(
+          const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
       builder: (context) => Padding(
@@ -198,6 +263,21 @@ class DialogUtils {
     );
   }
 
+  /// Shows an input dialog with a text field.
+  ///
+  /// [context] The build context.
+  /// [title] The title of the dialog.
+  /// [initialValue] The initial value of the text field.
+  /// [hintText] The hint text for the text field.
+  /// [confirmText] The text for the confirm button.
+  /// [cancelText] The text for the cancel button.
+  /// [keyboardType] The keyboard type for the text field.
+  /// [titleTextStyle] The text style for the title.
+  /// [hintTextStyle] The text style for the hint text.
+  /// [confirmTextStyle] The text style for the confirm button.
+  /// [cancelTextStyle] The text style for the cancel button.
+  ///
+  /// Returns a Future<String?> that completes with the entered text.
   static Future<String?> showInputDialog({
     required BuildContext context,
     required String title,
@@ -237,6 +317,10 @@ class DialogUtils {
     );
   }
 
+  /// Shows a full-screen dialog.
+  ///
+  /// [context] The build context.
+  /// [child] The widget to be displayed in the full-screen dialog.
   static Future<void> showFullScreenDialog({
     required BuildContext context,
     required Widget child,
@@ -249,6 +333,15 @@ class DialogUtils {
     );
   }
 
+  /// Shows an animated dialog with customizable transition.
+  ///
+  /// [context] The build context.
+  /// [builder] The builder function for the dialog content.
+  /// [barrierDismissible] Whether the dialog can be dismissed by tapping outside.
+  /// [transitionDuration] The duration of the transition animation.
+  /// [curve] The curve of the transition animation.
+  ///
+  /// Returns a Future that completes with the dialog's result.
   static Future<T?> showAnimatedDialog<T>({
     required BuildContext context,
     required WidgetBuilder builder,
@@ -265,7 +358,7 @@ class DialogUtils {
       transitionDuration: transitionDuration,
       transitionBuilder: (context, animation1, animation2, child) {
         return SlideTransition(
-          position: Tween(begin: Offset(0, 1), end: Offset.zero).animate(
+          position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
             CurvedAnimation(parent: animation1, curve: curve),
           ),
           child: child,
@@ -274,6 +367,19 @@ class DialogUtils {
     );
   }
 
+  /// Shows an exit confirmation dialog.
+  ///
+  /// [context] The build context.
+  /// [title] The title of the dialog.
+  /// [message] The message to be displayed in the dialog.
+  /// [confirmText] The text for the confirm button.
+  /// [cancelText] The text for the cancel button.
+  /// [titleTextStyle] The text style for the title.
+  /// [messageTextStyle] The text style for the message.
+  /// [confirmTextStyle] The text style for the confirm button.
+  /// [cancelTextStyle] The text style for the cancel button.
+  ///
+  /// Returns a Future<bool> that completes with true if confirmed, false otherwise.
   static Future<bool> showExitConfirmationDialog(
     BuildContext context, {
     String title = 'Exit App',
@@ -305,6 +411,13 @@ class DialogUtils {
         false;
   }
 
+  /// Shows a progress dialog with a linear progress indicator.
+  ///
+  /// [context] The build context.
+  /// [progressStream] A stream of double values representing the progress (0.0 to 1.0).
+  /// [title] The title of the dialog.
+  /// [titleTextStyle] The text style for the title.
+  /// [progressTextStyle] The text style for the progress percentage text.
   static Future<void> showProgressDialog({
     required BuildContext context,
     required Stream<double> progressStream,
@@ -327,7 +440,7 @@ class DialogUtils {
                   LinearProgressIndicator(
                     value: snapshot.data,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text('${((snapshot.data ?? 0) * 100).toStringAsFixed(0)}%',
                       style: progressTextStyle),
                 ],
@@ -339,6 +452,11 @@ class DialogUtils {
     );
   }
 
+  /// Shows a date picker dialog.
+  ///
+  /// [context] The build context.
+  ///
+  /// Returns a Future<DateTime?> that completes with the selected date.
   static Future<DateTime?> showDatePickerDialog(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -349,6 +467,11 @@ class DialogUtils {
     return picked;
   }
 
+  /// Shows a time picker dialog.
+  ///
+  /// [context] The build context.
+  ///
+  /// Returns a Future<TimeOfDay?> that completes with the selected time.
   static Future<TimeOfDay?> showTimePickerDialog(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -357,6 +480,14 @@ class DialogUtils {
     return picked;
   }
 
+  /// Shows a banner message at the top of the screen.
+  ///
+  /// [context] The build context.
+  /// [message] The message to be displayed in the banner.
+  /// [backgroundColor] The background color of the banner.
+  /// [textColor] The color of the text in the banner.
+  /// [duration] The duration for which the banner is visible.
+  /// [textStyle] The text style for the message.
   static void showBanner({
     required BuildContext context,
     required String message,

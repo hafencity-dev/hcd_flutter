@@ -2,16 +2,24 @@ import 'package:intl/intl.dart';
 import 'package:decimal/decimal.dart';
 import 'dart:math' as math;
 
+/// Extension methods for [num] to provide additional functionality.
 extension NumExtensions on num {
-  // Rounding
+  /// Rounds the number to the specified number of decimal [places].
   num roundTo(int places) =>
       (this * math.pow(10, places)).round() / math.pow(10, places);
+
+  /// Ceils the number to the specified number of decimal [places].
   num ceilTo(int places) =>
       (this * math.pow(10, places)).ceil() / math.pow(10, places);
+
+  /// Floors the number to the specified number of decimal [places].
   num floorTo(int places) =>
       (this * math.pow(10, places)).floor() / math.pow(10, places);
 
-  // Conversion
+  /// Converts the number to a percentage string.
+  ///
+  /// [decimalPlaces] specifies the number of decimal places to show.
+  /// [locale] specifies the locale for formatting.
   String toPercentString({int decimalPlaces = 2, String? locale}) {
     final formatter = NumberFormat.percentPattern(locale)
       ..minimumFractionDigits = decimalPlaces
@@ -19,6 +27,11 @@ extension NumExtensions on num {
     return formatter.format(this / 100);
   }
 
+  /// Converts the number to a currency string.
+  ///
+  /// [symbol] specifies the currency symbol.
+  /// [decimalPlaces] specifies the number of decimal places to show.
+  /// [locale] specifies the locale for formatting.
   String toCurrencyString(
           {String? symbol, int? decimalPlaces, String? locale}) =>
       NumberFormat.currency(
@@ -27,31 +40,51 @@ extension NumExtensions on num {
         locale: locale,
       ).format(this);
 
-  // Math operations
+  /// Raises the number to the power of [exponent].
   num pow(num exponent) => math.pow(this, exponent);
+
+  /// Calculates the square root of the number.
   num sqrt() => math.sqrt(this);
+
+  /// Returns the absolute value of the number.
   num abs() => this.abs();
 
-  // Comparison
+  /// Checks if the number is positive.
   bool isPositive() => this > 0;
+
+  /// Checks if the number is negative.
   bool isNegative() => this < 0;
+
+  /// Checks if the number is zero.
   bool isZero() => this == 0;
 
-  // Range checks
+  /// Checks if the number is between [lower] and [upper], inclusive.
   bool isBetween(num lower, num upper) => this >= lower && this <= upper;
+
+  /// Clamps the number between [lower] and [upper].
   num clamp(num lower, num upper) => math.max(lower, math.min(upper, this));
 
-  // Time conversion
+  /// Converts the number to a [Duration] in milliseconds.
   Duration toDuration() => Duration(milliseconds: round());
+
+  /// Converts the number to a [DateTime] from milliseconds since epoch.
   DateTime toDateTime() => DateTime.fromMillisecondsSinceEpoch(round());
 
-  // Bit operations (for integers)
+  /// Checks if the nth bit is set in the integer representation of the number.
   bool isBitSet(int n) => (toInt() & (1 << n)) != 0;
+
+  /// Sets the nth bit in the integer representation of the number.
   int setBit(int n) => toInt() | (1 << n);
+
+  /// Clears the nth bit in the integer representation of the number.
   int clearBit(int n) => toInt() & ~(1 << n);
+
+  /// Toggles the nth bit in the integer representation of the number.
   int toggleBit(int n) => toInt() ^ (1 << n);
 
-  // Roman numeral conversion
+  /// Converts the number to Roman numerals.
+  ///
+  /// Throws an [ArgumentError] if the number is not between 1 and 3999.
   String toRomanNumerals() {
     if (this <= 0 || this > 3999) {
       throw ArgumentError('Number must be between 1 and 3999');
@@ -97,7 +130,9 @@ extension NumExtensions on num {
     return result;
   }
 
-  // Ordinal suffix
+  /// Converts the number to its ordinal representation.
+  ///
+  /// [locale] specifies the locale for formatting.
   String toOrdinal({String? locale}) {
     final int n = round();
     if (locale == null || locale.startsWith('en')) {
@@ -117,32 +152,53 @@ extension NumExtensions on num {
     return NumberFormat.decimalPattern(locale).format(n);
   }
 
-  // Precision handling
+  /// Converts the number to a [Decimal] for precise decimal arithmetic.
   Decimal toDecimal() => Decimal.parse(toString());
+
+  /// Truncates the number to the specified number of decimal [places].
   double truncateToDecimalPlaces(int places) =>
       (this * math.pow(10, places)).truncate() / math.pow(10, places);
 
-  // Angle conversions
+  /// Converts radians to degrees.
   double toDegrees() => this * 180 / math.pi;
+
+  /// Converts degrees to radians.
   double toRadians() => this * math.pi / 180;
 
-  // Trigonometric functions
+  /// Calculates the sine of the number (in radians).
   double sin() => math.sin(toDouble());
+
+  /// Calculates the cosine of the number (in radians).
   double cos() => math.cos(toDouble());
+
+  /// Calculates the tangent of the number (in radians).
   double tan() => math.tan(toDouble());
 
-  // Formatting
+  /// Formats the number in a compact form (e.g., 1.2K, 1.2M).
+  ///
+  /// [locale] specifies the locale for formatting.
   String toCompactString({String? locale}) =>
       NumberFormat.compact(locale: locale).format(this);
 }
 
+/// Extension methods for [Iterable<num>] to provide statistical operations.
 extension NumIterableExtensions<T extends num> on Iterable<T> {
-  // Statistical operations
+  /// Calculates the average of the numbers in the iterable.
   double get average => isEmpty ? 0 : sum / length;
+
+  /// Calculates the sum of the numbers in the iterable.
   T get sum => fold(0 as T, (a, b) => (a + b) as T);
+
+  /// Calculates the product of the numbers in the iterable.
   T get product => fold(1 as T, (a, b) => (a * b) as T);
+
+  /// Finds the minimum value in the iterable.
   T get min => reduce((a, b) => a < b ? a : b);
+
+  /// Finds the maximum value in the iterable.
   T get max => reduce((a, b) => a > b ? a : b);
+
+  /// Calculates the median of the numbers in the iterable.
   double get median {
     final sorted = toList()..sort();
     final middle = length ~/ 2;
@@ -150,7 +206,7 @@ extension NumIterableExtensions<T extends num> on Iterable<T> {
     return (sorted[middle - 1] + sorted[middle]) / 2;
   }
 
-  // Standard deviation
+  /// Calculates the standard deviation of the numbers in the iterable.
   double get standardDeviation {
     if (length < 2) return 0;
     final avg = average;
