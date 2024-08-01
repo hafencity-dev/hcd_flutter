@@ -3,6 +3,8 @@ library hcd;
 // Utils
 export 'utils/utils.dart';
 export 'utils/dialog_utils.dart';
+export 'utils/app_localizations.dart';
+export 'utils/app_logger.dart';
 
 // Models
 export 'models/base_model.dart';
