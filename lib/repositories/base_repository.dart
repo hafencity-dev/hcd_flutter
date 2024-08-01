@@ -13,6 +13,9 @@ class ApiResult<T> {
 
   /// Returns true if the call was successful (data is present).
   bool get isSuccess => data != null;
+
+  /// Returns true if the call was not successful (data is not present).
+  bool get isFailure => !isSuccess;
 }
 
 /// An abstract base class for repositories that interact with REST APIs and Firestore.
