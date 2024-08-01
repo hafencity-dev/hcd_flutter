@@ -18,14 +18,21 @@ class ApiResult<T> {
   bool get isFailure => !isSuccess;
 }
 
-/// An abstract base class for repositories that interact with REST APIs and Firestore.
+/// An abstract base class for repositories that interact with REST APIs and/or Firestore.
 abstract class BaseRepository {
-  final http.Client client;
-  final String baseUrl;
-  final FirebaseFirestore firestore;
+  final http.Client? client;
+  final String? baseUrl;
+  final FirebaseFirestore? firestore;
 
-  BaseRepository(
-      {required this.client, required this.baseUrl, required this.firestore});
+  BaseRepository({this.client, this.baseUrl, this.firestore}) {
+    if (client == null && firestore == null) {
+      throw ArgumentError(
+          'At least one of client or firestore must be provided');
+    }
+    if (client != null && baseUrl == null) {
+      throw ArgumentError('baseUrl must be provided when client is set');
+    }
+  }
 
   /// Retrieves the authentication token from Firebase Auth.
   Future<String> getAuthToken() async {
@@ -91,9 +98,10 @@ abstract class BaseRepository {
       String path, T Function(Map<String, dynamic>) fromJson,
       {Map<String, String>? customHeaders,
       bool includeAuthToken = false}) async {
+    _ensureClientExists();
     final headers = await _buildHeaders(customHeaders, includeAuthToken);
     return _sendRequest(
-        () => client.get(Uri.parse('$baseUrl$path'), headers: headers),
+        () => client!.get(Uri.parse('$baseUrl$path'), headers: headers),
         fromJson);
   }
 
@@ -108,9 +116,10 @@ abstract class BaseRepository {
       T Function(Map<String, dynamic>) fromJson,
       {Map<String, String>? customHeaders,
       bool includeAuthToken = false}) async {
+    _ensureClientExists();
     final headers = await _buildHeaders(customHeaders, includeAuthToken);
     return _sendRequest(
-        () => client.post(Uri.parse('$baseUrl$path'),
+        () => client!.post(Uri.parse('$baseUrl$path'),
             body: json.encode(body), headers: headers),
         fromJson);
   }
@@ -126,9 +135,10 @@ abstract class BaseRepository {
       T Function(Map<String, dynamic>) fromJson,
       {Map<String, String>? customHeaders,
       bool includeAuthToken = false}) async {
+    _ensureClientExists();
     final headers = await _buildHeaders(customHeaders, includeAuthToken);
     return _sendRequest(
-        () => client.put(Uri.parse('$baseUrl$path'),
+        () => client!.put(Uri.parse('$baseUrl$path'),
             body: json.encode(body), headers: headers),
         fromJson);
   }
@@ -139,9 +149,10 @@ abstract class BaseRepository {
     String documentId,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
       final docSnapshot =
-          await firestore.collection(collectionPath).doc(documentId).get();
+          await firestore!.collection(collectionPath).doc(documentId).get();
       if (!docSnapshot.exists) {
         throw FirebaseException(
           plugin: 'cloud_firestore',
@@ -160,8 +171,9 @@ abstract class BaseRepository {
     Query Function(Query)? queryBuilder,
     int? limit,
   }) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      Query query = firestore.collection(collectionPath);
+      Query query = firestore!.collection(collectionPath);
       if (queryBuilder != null) {
         query = queryBuilder(query);
       }
@@ -183,8 +195,9 @@ abstract class BaseRepository {
     Map<String, dynamic> Function(T) toJson, {
     bool merge = false,
   }) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      await firestore
+      await firestore!
           .collection(collectionPath)
           .doc(documentId)
           .set(toJson(data), SetOptions(merge: merge));
@@ -197,8 +210,9 @@ abstract class BaseRepository {
     String documentId,
     Map<String, dynamic> data,
   ) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      await firestore.collection(collectionPath).doc(documentId).update(data);
+      await firestore!.collection(collectionPath).doc(documentId).update(data);
     });
   }
 
@@ -207,8 +221,9 @@ abstract class BaseRepository {
     String collectionPath,
     String documentId,
   ) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      await firestore.collection(collectionPath).doc(documentId).delete();
+      await firestore!.collection(collectionPath).doc(documentId).delete();
     });
   }
 
@@ -218,7 +233,8 @@ abstract class BaseRepository {
     String documentId,
     T Function(Map<String, dynamic>) fromJson,
   ) {
-    return firestore
+    _ensureFirestoreExists();
+    return firestore!
         .collection(collectionPath)
         .doc(documentId)
         .snapshots()
@@ -242,7 +258,8 @@ abstract class BaseRepository {
     Query Function(Query)? queryBuilder,
     int? limit,
   }) {
-    Query query = firestore.collection(collectionPath);
+    _ensureFirestoreExists();
+    Query query = firestore!.collection(collectionPath);
     if (queryBuilder != null) {
       query = queryBuilder(query);
     }
@@ -266,16 +283,18 @@ abstract class BaseRepository {
   Future<ApiResult<T>> runTransaction<T>(
     Future<T> Function(Transaction) transactionHandler,
   ) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      return await firestore.runTransaction(transactionHandler);
+      return await firestore!.runTransaction(transactionHandler);
     });
   }
 
   /// Executes a batch write operation in Firestore.
   Future<ApiResult<void>> writeBatch(
       void Function(WriteBatch) batchHandler) async {
+    _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      final batch = firestore.batch();
+      final batch = firestore!.batch();
       batchHandler(batch);
       await batch.commit();
     });
@@ -297,6 +316,18 @@ abstract class BaseRepository {
       developer.log('Exception during Firestore operation: $e',
           error: e, stackTrace: stacktrace);
       return ApiResult<T>(errorMessage: e.toString());
+    }
+  }
+
+  void _ensureClientExists() {
+    if (client == null) {
+      throw StateError('HTTP client is not initialized');
+    }
+  }
+
+  void _ensureFirestoreExists() {
+    if (firestore == null) {
+      throw StateError('Firestore is not initialized');
     }
   }
 }
