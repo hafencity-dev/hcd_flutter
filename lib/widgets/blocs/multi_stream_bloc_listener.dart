@@ -10,8 +10,8 @@ class MultiStreamBlocListener<
     T extends MultiStreamBloc<Event, S>,
     Event extends MultiStreamBlocEvent,
     S extends MultiStreamBlocState> extends StatelessWidget {
-  final void Function(BuildContext, S?) listener;
-  final bool Function(S?, S?)? listenWhen;
+  final void Function(BuildContext, S) listener;
+  final bool Function(S, S)? listenWhen;
   final T? bloc;
   final Widget child;
 
@@ -34,15 +34,15 @@ class MultiStreamBlocListener<
     return BlocListener<T, MultiStreamBlocState>(
       bloc: bloc,
       listener: (context, state) {
-        final S? currentState = state as S?;
+        final S currentState = state as S;
         return listener(context, currentState);
       },
       listenWhen: (previous, current) {
         if (listenWhen == null) {
           return true;
         }
-        final S? previousState = previous as S?;
-        final S? currentState = current as S?;
+        final S previousState = previous as S;
+        final S currentState = current as S;
         return listenWhen!(previousState, currentState);
       },
       child: child,

@@ -15,10 +15,10 @@ class MultiStreamBlocConsumer<
     T extends MultiStreamBloc<Event, S>,
     Event extends MultiStreamBlocEvent,
     S extends MultiStreamBlocState> extends StatelessWidget {
-  final void Function(BuildContext, S?) listener;
-  final bool Function(S?, S?)? listenWhen;
-  final Widget Function(BuildContext, S?) builder;
-  final bool Function(S?, S?)? buildWhen;
+  final void Function(BuildContext, S) listener;
+  final bool Function(S, S)? listenWhen;
+  final Widget Function(BuildContext, S) builder;
+  final bool Function(S, S)? buildWhen;
   final T? bloc;
 
   /// Constructs a [MultiStreamBlocConsumer].
@@ -42,27 +42,27 @@ class MultiStreamBlocConsumer<
     return BlocConsumer<T, MultiStreamBlocState>(
       bloc: bloc,
       listener: (context, state) {
-        final S? currentState = state as S?;
+        final S currentState = state as S;
         return listener(context, currentState);
       },
       listenWhen: (previous, current) {
         if (listenWhen == null) {
           return true;
         }
-        final S? previousState = previous as S?;
-        final S? currentState = current as S?;
+        final S previousState = previous as S;
+        final S currentState = current as S;
         return listenWhen!(previousState, currentState);
       },
       builder: (context, state) {
-        final S? currentState = state as S?;
+        final S currentState = state as S;
         return builder(context, currentState);
       },
       buildWhen: (previous, current) {
         if (buildWhen == null) {
           return true;
         }
-        final S? previousState = previous as S?;
-        final S? currentState = current as S?;
+        final S previousState = previous as S;
+        final S currentState = current as S;
         return buildWhen!(previousState, currentState);
       },
     );
