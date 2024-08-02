@@ -60,24 +60,15 @@ abstract class MultiStreamBloc<Event extends MultiStreamBlocEvent,
   /// Stores active stream subscriptions, keyed by stream ID.
   final Map<int, StreamSubscription<dynamic>> _subscriptions = {};
 
-  /// Stores debounce timers for each stream, keyed by stream ID.
-  final Map<int, Timer> _debouncers = {};
-
-  /// Duration to debounce rapid updates from streams.
-  final Duration _debounceDuration;
-
   /// The initial state of the bloc.
   final State _initialState;
 
   /// Creates a new instance of MultiStreamBloc.
   ///
   /// [initialState] is the initial state of the Bloc.
-  /// [debounceDuration] is an optional duration to debounce rapid state updates.
   MultiStreamBloc({
     required State initialState,
-    Duration debounceDuration = Duration.zero,
-  })  : _debounceDuration = debounceDuration,
-        _initialState = initialState,
+  })  : _initialState = initialState,
         super(initialState) {
     on<_MultiStreamBlocUpdated>(_onUpdated);
     on<MultiStreamBlocError>(_onError);
@@ -104,7 +95,7 @@ abstract class MultiStreamBloc<Event extends MultiStreamBlocEvent,
   /// [streamId] is the identifier of the stream that emitted new data.
   /// [data] is the new data emitted by the stream.
   @protected
-  void onStreamData<T>(int streamId, T data);
+  void onStreamData<T>(int streamId, T data, Emitter<State> emit);
 
   /// Handles the [_MultiStreamBlocUpdated] event.
   ///
@@ -112,10 +103,7 @@ abstract class MultiStreamBloc<Event extends MultiStreamBlocEvent,
   @protected
   Future<void> _onUpdated(
       _MultiStreamBlocUpdated event, Emitter<State> emit) async {
-    _debouncers[event.streamId]?.cancel();
-    _debouncers[event.streamId] = Timer(_debounceDuration, () {
-      onStreamData(event.streamId, event.snapshot);
-    });
+    onStreamData(event.streamId, event.snapshot, emit);
   }
 
   /// Handles the [MultiStreamBlocError] event.
@@ -134,20 +122,8 @@ abstract class MultiStreamBloc<Event extends MultiStreamBlocEvent,
     for (final subscription in _subscriptions.values) {
       await subscription.cancel();
     }
-    for (final debouncer in _debouncers.values) {
-      debouncer.cancel();
-    }
     _subscriptions.clear();
-    _debouncers.clear();
     emit(_initialState);
-  }
-
-  /// Updates the bloc's state.
-  ///
-  /// Use this method to emit a new state from within your bloc logic.
-  void updateState(State newState) {
-    // ignore: invalid_use_of_visible_for_testing_member
-    emit(newState);
   }
 
   /// Closes the MultiStreamBloc and cleans up resources.
@@ -158,9 +134,7 @@ abstract class MultiStreamBloc<Event extends MultiStreamBlocEvent,
     for (final subscription in _subscriptions.values) {
       await subscription.cancel();
     }
-    for (final debouncer in _debouncers.values) {
-      debouncer.cancel();
-    }
+    _subscriptions.clear();
     return super.close();
   }
 }
