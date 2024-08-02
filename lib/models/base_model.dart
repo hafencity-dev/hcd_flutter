@@ -15,11 +15,15 @@ abstract class BaseModel {
   Map<String, dynamic> toJson();
 }
 
-class TimestampConverter implements JsonConverter<DateTime, dynamic> {
+class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
   const TimestampConverter();
 
   @override
-  DateTime fromJson(dynamic value) {
+  DateTime? fromJson(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
     if (value is Timestamp) {
       return value.toDate();
     } else if (value is String) {
@@ -29,5 +33,5 @@ class TimestampConverter implements JsonConverter<DateTime, dynamic> {
   }
 
   @override
-  dynamic toJson(DateTime date) => date.toIso8601String();
+  dynamic toJson(DateTime? date) => date?.toIso8601String();
 }
