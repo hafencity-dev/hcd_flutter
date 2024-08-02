@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 
 /// Base class for all events in MultiStreamBloc.
 @immutable
-abstract class MultiStreamBlocEvent {}
+abstract class MultiStreamBlocEvent extends Equatable {}
 
 /// Internal event emitted when new data is available from a stream.
 class _MultiStreamBlocUpdated<T> extends MultiStreamBlocEvent {
@@ -16,6 +16,9 @@ class _MultiStreamBlocUpdated<T> extends MultiStreamBlocEvent {
   final T snapshot;
 
   _MultiStreamBlocUpdated(this.streamId, this.snapshot);
+
+  @override
+  List<Object?> get props => [streamId, snapshot];
 }
 
 /// Event emitted when an error occurs in a stream.
@@ -30,19 +33,22 @@ class MultiStreamBlocError extends MultiStreamBlocEvent {
   final StackTrace? stackTrace;
 
   MultiStreamBlocError(this.streamId, this.error, [this.stackTrace]);
+
+  @override
+  List<Object?> get props => [streamId, error, stackTrace];
 }
 
 /// Event to reset the MultiStreamBloc to its initial state.
-class MultiStreamBlocReset extends MultiStreamBlocEvent {}
+class MultiStreamBlocReset extends MultiStreamBlocEvent {
+  @override
+  List<Object?> get props => [];
+}
 
 /// Base class for the state of a MultiStreamBloc.
 ///
 /// Extend this class to define the specific state for your bloc.
 @immutable
-abstract class MultiStreamBlocState extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
+abstract class MultiStreamBlocState extends Equatable {}
 
 /// A generic Bloc for managing multiple streaming data sources.
 ///

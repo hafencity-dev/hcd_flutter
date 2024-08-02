@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 
 /// Base class for all events in StreamBloc.
 @immutable
-abstract class StreamBlocEvent {}
+abstract class StreamBlocEvent extends Equatable {}
 
 /// Event emitted when new data is available from the stream.
 class StreamBlocUpdated<T> extends StreamBlocEvent {
@@ -13,6 +13,9 @@ class StreamBlocUpdated<T> extends StreamBlocEvent {
   final T snapshot;
 
   StreamBlocUpdated(this.snapshot);
+
+  @override
+  List<Object?> get props => [snapshot];
 }
 
 /// Event emitted when an error occurs in the stream.
@@ -24,10 +27,16 @@ class StreamBlocError extends StreamBlocEvent {
   final StackTrace? stackTrace;
 
   StreamBlocError(this.error, [this.stackTrace]);
+
+  @override
+  List<Object?> get props => [error, stackTrace];
 }
 
 /// Event to reset the StreamBloc to its initial state.
-class StreamBlocReset extends StreamBlocEvent {}
+class StreamBlocReset extends StreamBlocEvent {
+  @override
+  List<Object?> get props => [];
+}
 
 /// Represents the state of a StreamBloc.
 @immutable
