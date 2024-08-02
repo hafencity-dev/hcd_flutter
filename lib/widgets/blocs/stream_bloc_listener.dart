@@ -12,6 +12,7 @@ class StreamBlocListener<T extends StreamBloc<B, StreamBlocEvent>, B>
   final bool Function(B?, B?)? listenWhen;
   final T? bloc;
   final Widget child;
+  final bool onlyIfTopRoute;
 
   /// Constructs a [StreamBlocListener].
   ///
@@ -19,12 +20,14 @@ class StreamBlocListener<T extends StreamBloc<B, StreamBlocEvent>, B>
   /// - [listener]: A function that reacts to the bloc's state changes.
   /// - [listenWhen]: An optional condition that determines whether to trigger the listener.
   /// - [child]: The widget below this widget in the tree.
+  /// - [onlyIfTopRoute]: Whether to only call listener if the current route is the top route.
   const StreamBlocListener({
     super.key,
     this.bloc,
     required this.listener,
     this.listenWhen,
     required this.child,
+    this.onlyIfTopRoute = true,
   });
 
   @override
@@ -32,6 +35,9 @@ class StreamBlocListener<T extends StreamBloc<B, StreamBlocEvent>, B>
     return BlocListener<T, StreamBlocState<B?>>(
       bloc: bloc,
       listener: (context, state) {
+        if (onlyIfTopRoute && !(ModalRoute.of(context)?.isCurrent == true)) {
+          return;
+        }
         final B? currentState = state.snapshot;
         listener(context, currentState);
       },

@@ -15,6 +15,7 @@ class StreamBlocConsumer<T extends StreamBloc<B, StreamBlocEvent>, B>
   final Widget Function(BuildContext, B?) builder;
   final bool Function(B?, B?)? buildWhen;
   final T? bloc;
+  final bool onlyIfTopRoute;
 
   /// Constructs a [StreamBlocConsumer].
   ///
@@ -23,6 +24,7 @@ class StreamBlocConsumer<T extends StreamBloc<B, StreamBlocEvent>, B>
   /// - [listenWhen]: An optional condition that determines whether to trigger the listener.
   /// - [builder]: A function that builds the widget tree based on the bloc's state.
   /// - [buildWhen]: An optional condition that determines whether to rebuild.
+  /// - [onlyIfTopRoute]: Whether to only call listener if the current route is the top route.
   const StreamBlocConsumer({
     super.key,
     this.bloc,
@@ -30,6 +32,7 @@ class StreamBlocConsumer<T extends StreamBloc<B, StreamBlocEvent>, B>
     this.listenWhen,
     required this.builder,
     this.buildWhen,
+    this.onlyIfTopRoute = true,
   });
 
   @override
@@ -37,6 +40,9 @@ class StreamBlocConsumer<T extends StreamBloc<B, StreamBlocEvent>, B>
     return BlocConsumer<T, StreamBlocState<B?>>(
       bloc: bloc,
       listener: (context, state) {
+        if (onlyIfTopRoute && !(ModalRoute.of(context)?.isCurrent == true)) {
+          return;
+        }
         final B? currentState = state.snapshot;
         listener(context, currentState);
       },

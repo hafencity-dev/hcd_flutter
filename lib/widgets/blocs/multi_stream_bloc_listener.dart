@@ -14,6 +14,7 @@ class MultiStreamBlocListener<
   final bool Function(S, S)? listenWhen;
   final T? bloc;
   final Widget child;
+  final bool onlyIfTopRoute;
 
   /// Constructs a [MultiStreamBlocListener].
   ///
@@ -21,12 +22,14 @@ class MultiStreamBlocListener<
   /// - [listener]: A function that reacts to the bloc's state changes.
   /// - [listenWhen]: An optional condition that determines whether to trigger the listener.
   /// - [child]: The widget below this widget in the tree.
+  /// - [onlyIfTopRoute]: Whether to only call listener if the current route is the top route.
   const MultiStreamBlocListener({
     super.key,
     this.bloc,
     required this.listener,
     this.listenWhen,
     required this.child,
+    this.onlyIfTopRoute = true,
   });
 
   @override
@@ -34,6 +37,9 @@ class MultiStreamBlocListener<
     return BlocListener<T, MultiStreamBlocState>(
       bloc: bloc,
       listener: (context, state) {
+        if (onlyIfTopRoute && !(ModalRoute.of(context)?.isCurrent == true)) {
+          return;
+        }
         final S currentState = state as S;
         return listener(context, currentState);
       },

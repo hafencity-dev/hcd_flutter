@@ -20,6 +20,7 @@ class MultiStreamBlocConsumer<
   final Widget Function(BuildContext, S) builder;
   final bool Function(S, S)? buildWhen;
   final T? bloc;
+  final bool onlyIfTopRoute;
 
   /// Constructs a [MultiStreamBlocConsumer].
   ///
@@ -28,6 +29,7 @@ class MultiStreamBlocConsumer<
   /// - [listenWhen]: An optional condition that determines whether to trigger the listener.
   /// - [builder]: A function that builds the widget tree based on the bloc's state.
   /// - [buildWhen]: An optional condition that determines whether to rebuild.
+  /// - [onlyIfTopRoute]: Whether to only call listener if the current route is the top route.
   const MultiStreamBlocConsumer({
     super.key,
     this.bloc,
@@ -35,6 +37,7 @@ class MultiStreamBlocConsumer<
     this.listenWhen,
     required this.builder,
     this.buildWhen,
+    this.onlyIfTopRoute = true,
   });
 
   @override
@@ -42,6 +45,9 @@ class MultiStreamBlocConsumer<
     return BlocConsumer<T, MultiStreamBlocState>(
       bloc: bloc,
       listener: (context, state) {
+        if (onlyIfTopRoute && !(ModalRoute.of(context)?.isCurrent == true)) {
+          return;
+        }
         final S currentState = state as S;
         return listener(context, currentState);
       },
