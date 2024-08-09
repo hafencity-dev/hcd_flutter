@@ -187,6 +187,20 @@ abstract class BaseRepository {
     });
   }
 
+  /// Adds a new document to a Firestore collection.
+  Future<ApiResult<String>> addDocument<T>(
+    String collectionPath,
+    T data,
+    Map<String, dynamic> Function(T) toJson,
+  ) async {
+    _ensureFirestoreExists();
+    return _firestoreOperation(() async {
+      final docRef =
+          await firestore!.collection(collectionPath).add(toJson(data));
+      return docRef.id;
+    });
+  }
+
   /// Sets a document in Firestore.
   Future<ApiResult<void>> setDocument<T>(
     String collectionPath,
