@@ -8,11 +8,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 class ApiResult<T> {
   final T? data;
   final String? errorMessage;
+  final bool isSuccess;
 
-  ApiResult({this.data, this.errorMessage});
+  ApiResult._({this.data, this.errorMessage, required this.isSuccess});
 
-  /// Returns true if the call was successful (data is present).
-  bool get isSuccess => data != null;
+  factory ApiResult.success(T data) {
+    return ApiResult._(data: data, isSuccess: true);
+  }
+
+  factory ApiResult.failure(String? errorMessage) {
+    return ApiResult._(errorMessage: errorMessage, isSuccess: false);
+  }
 
   /// Returns true if the call was not successful (data is not present).
   bool get isFailure => !isSuccess;
@@ -74,17 +80,17 @@ abstract class BaseRepository {
       final response = await requestFunction();
       if (response.statusCode == 200) {
         final data = fromJson(json.decode(response.body));
-        return ApiResult<T>(data: data);
+        return ApiResult<T>.success(data);
       } else {
         developer.log(
             'API call failed: ${response.statusCode} ${response.body}',
             error: response.statusCode);
-        return ApiResult<T>(errorMessage: 'Error: ${response.statusCode}');
+        return ApiResult<T>.failure('Error: ${response.statusCode}');
       }
     } catch (e, stacktrace) {
       developer.log('Exception during API call: $e',
           error: e, stackTrace: stacktrace);
-      return ApiResult<T>(errorMessage: e.toString());
+      return ApiResult<T>.failure(e.toString());
     }
   }
 
@@ -254,14 +260,14 @@ abstract class BaseRepository {
         .snapshots()
         .map((snapshot) {
       if (!snapshot.exists) {
-        return ApiResult<T>(errorMessage: 'Document not found');
+        return ApiResult<T>.failure('Document not found');
       }
-      return ApiResult<T>(
-          data: fromJson(snapshot.data()! as Map<String, dynamic>));
+      return ApiResult<T>.success(
+          fromJson(snapshot.data()! as Map<String, dynamic>));
     }).handleError((e, stacktrace) {
       developer.log('Exception during Firestore stream operation: $e',
           error: e, stackTrace: stacktrace);
-      return ApiResult<T>(errorMessage: e.toString());
+      return ApiResult<T>.failure(e.toString());
     });
   }
 
@@ -285,11 +291,11 @@ abstract class BaseRepository {
       final documents = snapshot.docs
           .map((doc) => fromJson(doc.data() as Map<String, dynamic>))
           .toList();
-      return ApiResult<List<T>>(data: documents);
+      return ApiResult<List<T>>.success(documents);
     }).handleError((e, stacktrace) {
       developer.log('Exception during Firestore stream operation: $e',
           error: e, stackTrace: stacktrace);
-      return ApiResult<List<T>>(errorMessage: e.toString());
+      return ApiResult<List<T>>.failure(e.toString());
     });
   }
 
@@ -319,17 +325,17 @@ abstract class BaseRepository {
       Future<T> Function() firestoreFunction) async {
     try {
       final data = await firestoreFunction();
-      return ApiResult<T>(data: data);
+      return ApiResult<T>.success(data);
     } on FirebaseException catch (e, stacktrace) {
       developer.log(
           'FirebaseException during Firestore operation: ${e.message}',
           error: e,
           stackTrace: stacktrace);
-      return ApiResult<T>(errorMessage: e.message);
+      return ApiResult<T>.failure(e.message);
     } catch (e, stacktrace) {
       developer.log('Exception during Firestore operation: $e',
           error: e, stackTrace: stacktrace);
-      return ApiResult<T>(errorMessage: e.toString());
+      return ApiResult<T>.failure(e.toString());
     }
   }
 
