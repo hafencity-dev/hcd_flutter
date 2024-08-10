@@ -166,7 +166,12 @@ abstract class BaseRepository {
           code: 'document-not-found',
         );
       }
-      return fromJson(docSnapshot.data()! as Map<String, dynamic>);
+      final data = docSnapshot.data()! as Map<String, dynamic>;
+      // Add document ID to the map if not already present
+      if (!data.containsKey('id')) {
+        data['id'] = docSnapshot.id;
+      }
+      return fromJson(data);
     });
   }
 
@@ -187,9 +192,14 @@ abstract class BaseRepository {
         query = query.limit(limit);
       }
       final querySnapshot = await query.get();
-      return querySnapshot.docs
-          .map((doc) => fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        // Add document ID to the map if not already present
+        if (!data.containsKey('id')) {
+          data['id'] = doc.id;
+        }
+        return fromJson(data);
+      }).toList();
     });
   }
 
@@ -262,8 +272,12 @@ abstract class BaseRepository {
       if (!snapshot.exists) {
         return ApiResult<T>.failure('Document not found');
       }
-      return ApiResult<T>.success(
-          fromJson(snapshot.data()! as Map<String, dynamic>));
+      final data = snapshot.data()! as Map<String, dynamic>;
+      // Add document ID to the map if not already present
+      if (!data.containsKey('id')) {
+        data['id'] = snapshot.id;
+      }
+      return ApiResult<T>.success(fromJson(data));
     }).handleError((e, stacktrace) {
       developer.log('Exception during Firestore stream operation: $e',
           error: e, stackTrace: stacktrace);
@@ -288,9 +302,14 @@ abstract class BaseRepository {
     }
 
     return query.snapshots().map((snapshot) {
-      final documents = snapshot.docs
-          .map((doc) => fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
+      final documents = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        // Add document ID to the map if not already present
+        if (!data.containsKey('id')) {
+          data['id'] = doc.id;
+        }
+        return fromJson(data);
+      }).toList();
       return ApiResult<List<T>>.success(documents);
     }).handleError((e, stacktrace) {
       developer.log('Exception during Firestore stream operation: $e',
