@@ -16,7 +16,7 @@ export 'utils/extensions/number_extensions.dart';
 export 'utils/extensions/iterable_extensions.dart';
 export 'utils/extensions/date_time_extensions.dart';
 export 'utils/extensions/color_extensions.dart';
-
+export 'utils/extensions/query_extensions.dart';
 // Blocs
 export 'blocs/multi_stream_bloc/multi_stream_bloc.dart';
 export 'blocs/stream_bloc/stream_bloc.dart';
