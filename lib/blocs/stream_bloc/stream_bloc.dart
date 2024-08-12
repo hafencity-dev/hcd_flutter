@@ -89,18 +89,13 @@ class StreamBlocState<T> extends Equatable {
 abstract class StreamBloc<T, ListenEvent extends StreamBlocEvent>
     extends Bloc<StreamBlocEvent, StreamBlocState<T>> {
   StreamSubscription<T?>? _subscription;
-  Timer? _debounceTimer;
-  final Duration _debounceDuration;
 
   /// Creates a new instance of StreamBloc.
   ///
   /// [initialState] is the initial state of the Bloc. If not provided, it defaults to [StreamBlocState] with default values.
-  /// [debounceDuration] is an optional duration to debounce rapid state updates.
   StreamBloc({
     StreamBlocState<T>? initialState,
-    Duration debounceDuration = Duration.zero,
-  })  : _debounceDuration = debounceDuration,
-        super(initialState ?? StreamBlocState<T>()) {
+  }) : super(initialState ?? StreamBlocState<T>()) {
     on<ListenEvent>(_onListenTo);
     on<StreamBlocUpdated<T>>(_onUpdated);
     on<StreamBlocError>(_onError);
@@ -136,13 +131,10 @@ abstract class StreamBloc<T, ListenEvent extends StreamBlocEvent>
   @protected
   Future<void> _onUpdated(
       StreamBlocUpdated<T> event, Emitter<StreamBlocState<T>> emit) async {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(_debounceDuration, () {
-      if (state.snapshot != event.snapshot) {
-        emit(state.copyWith(
-            snapshot: event.snapshot, isLoading: false, error: null));
-      }
-    });
+    if (state.snapshot != event.snapshot) {
+      emit(state.copyWith(
+          snapshot: event.snapshot, isLoading: false, error: null));
+    }
   }
 
   /// Handles [StreamBlocError] events by updating the state with the error.
@@ -157,7 +149,6 @@ abstract class StreamBloc<T, ListenEvent extends StreamBlocEvent>
   Future<void> _onReset(
       StreamBlocReset event, Emitter<StreamBlocState<T>> emit) async {
     await _subscription?.cancel();
-    _debounceTimer?.cancel();
     emit(StreamBlocState<T>());
   }
 
@@ -165,7 +156,6 @@ abstract class StreamBloc<T, ListenEvent extends StreamBlocEvent>
   @override
   Future<void> close() async {
     await _subscription?.cancel();
-    _debounceTimer?.cancel();
     return super.close();
   }
 }
