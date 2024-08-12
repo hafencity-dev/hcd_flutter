@@ -28,6 +28,8 @@ mixin _$ExampleModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   DocumentReference<Object?>? get reference =>
       throw _privateConstructorUsedError;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  DocumentSnapshot<Object?>? get snapshot => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
 
@@ -53,6 +55,8 @@ abstract class $ExampleModelCopyWith<$Res> {
       @TimestampConverter() DateTime? updatedAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       DocumentReference<Object?>? reference,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      DocumentSnapshot<Object?>? snapshot,
       String name,
       String email});
 }
@@ -76,6 +80,7 @@ class _$ExampleModelCopyWithImpl<$Res, $Val extends ExampleModel>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? reference = freezed,
+    Object? snapshot = freezed,
     Object? name = null,
     Object? email = null,
   }) {
@@ -96,6 +101,10 @@ class _$ExampleModelCopyWithImpl<$Res, $Val extends ExampleModel>
           ? _value.reference
           : reference // ignore: cast_nullable_to_non_nullable
               as DocumentReference<Object?>?,
+      snapshot: freezed == snapshot
+          ? _value.snapshot
+          : snapshot // ignore: cast_nullable_to_non_nullable
+              as DocumentSnapshot<Object?>?,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -122,6 +131,8 @@ abstract class _$$ExampleModelImplCopyWith<$Res>
       @TimestampConverter() DateTime? updatedAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       DocumentReference<Object?>? reference,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      DocumentSnapshot<Object?>? snapshot,
       String name,
       String email});
 }
@@ -143,6 +154,7 @@ class __$$ExampleModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? reference = freezed,
+    Object? snapshot = freezed,
     Object? name = null,
     Object? email = null,
   }) {
@@ -163,6 +175,10 @@ class __$$ExampleModelImplCopyWithImpl<$Res>
           ? _value.reference
           : reference // ignore: cast_nullable_to_non_nullable
               as DocumentReference<Object?>?,
+      snapshot: freezed == snapshot
+          ? _value.snapshot
+          : snapshot // ignore: cast_nullable_to_non_nullable
+              as DocumentSnapshot<Object?>?,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -183,6 +199,7 @@ class _$ExampleModelImpl extends _ExampleModel {
       @TimestampConverter() this.createdAt,
       @TimestampConverter() this.updatedAt,
       @JsonKey(includeFromJson: false, includeToJson: false) this.reference,
+      @JsonKey(includeFromJson: false, includeToJson: false) this.snapshot,
       required this.name,
       required this.email})
       : super._();
@@ -202,13 +219,16 @@ class _$ExampleModelImpl extends _ExampleModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final DocumentReference<Object?>? reference;
   @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final DocumentSnapshot<Object?>? snapshot;
+  @override
   final String name;
   @override
   final String email;
 
   @override
   String toString() {
-    return 'ExampleModel(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, reference: $reference, name: $name, email: $email)';
+    return 'ExampleModel(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, reference: $reference, snapshot: $snapshot, name: $name, email: $email)';
   }
 
   @override
@@ -223,6 +243,8 @@ class _$ExampleModelImpl extends _ExampleModel {
                 other.updatedAt == updatedAt) &&
             (identical(other.reference, reference) ||
                 other.reference == reference) &&
+            (identical(other.snapshot, snapshot) ||
+                other.snapshot == snapshot) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.email, email) || other.email == email));
   }
@@ -230,7 +252,7 @@ class _$ExampleModelImpl extends _ExampleModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, id, createdAt, updatedAt, reference, name, email);
+      runtimeType, id, createdAt, updatedAt, reference, snapshot, name, email);
 
   /// Create a copy of ExampleModel
   /// with the given fields replaced by the non-null parameter values.
@@ -255,6 +277,8 @@ abstract class _ExampleModel extends ExampleModel {
       @TimestampConverter() final DateTime? updatedAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       final DocumentReference<Object?>? reference,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final DocumentSnapshot<Object?>? snapshot,
       required final String name,
       required final String email}) = _$ExampleModelImpl;
   const _ExampleModel._() : super._();
@@ -273,6 +297,9 @@ abstract class _ExampleModel extends ExampleModel {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   DocumentReference<Object?>? get reference;
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  DocumentSnapshot<Object?>? get snapshot;
   @override
   String get name;
   @override

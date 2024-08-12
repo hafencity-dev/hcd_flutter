@@ -18,16 +18,8 @@ _$ExampleModelImpl _$$ExampleModelImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$ExampleModelImplToJson(_$ExampleModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'createdAt': _$JsonConverterToJson<dynamic, DateTime>(
-          instance.createdAt, const TimestampConverter().toJson),
-      'updatedAt': _$JsonConverterToJson<dynamic, DateTime>(
-          instance.updatedAt, const TimestampConverter().toJson),
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
       'name': instance.name,
       'email': instance.email,
     };
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) =>
-    value == null ? null : toJson(value);

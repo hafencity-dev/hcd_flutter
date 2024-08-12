@@ -15,6 +15,8 @@ class ExampleModel with _$ExampleModel implements BaseModel {
     @TimestampConverter() DateTime? updatedAt,
     @JsonKey(includeFromJson: false, includeToJson: false)
     DocumentReference? reference,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    DocumentSnapshot? snapshot,
     required String name,
     required String email,
   }) = _ExampleModel;
@@ -27,7 +29,7 @@ class ExampleModel with _$ExampleModel implements BaseModel {
     return ExampleModel.fromJson({
       'id': doc.id,
       ...data ?? {},
-    }).copyWith(reference: doc.reference);
+    }).copyWith(reference: doc.reference, snapshot: doc);
   }
 
   ExampleModel copyWithTimestamp({bool updateCreatedAt = false}) {

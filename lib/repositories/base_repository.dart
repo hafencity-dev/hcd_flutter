@@ -153,12 +153,18 @@ abstract class BaseRepository {
   Future<ApiResult<T>> getDocument<T>(
     String collectionPath,
     String documentId,
-    T Function(Map<String, dynamic>) fromJson,
+    T Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+        fromFirestore,
+    Map<String, Object?> Function(T, SetOptions?) toFirestore,
   ) async {
     _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      final docSnapshot =
-          await firestore!.collection(collectionPath).doc(documentId).get();
+      final docRef =
+          firestore!.collection(collectionPath).doc(documentId).withConverter(
+                fromFirestore: fromFirestore,
+                toFirestore: toFirestore,
+              );
+      final docSnapshot = await docRef.get();
       if (!docSnapshot.exists) {
         throw FirebaseException(
           plugin: 'cloud_firestore',
@@ -166,25 +172,25 @@ abstract class BaseRepository {
           code: 'document-not-found',
         );
       }
-      final data = docSnapshot.data()! as Map<String, dynamic>;
-      // Add document ID to the map if not already present
-      if (!data.containsKey('id')) {
-        data['id'] = docSnapshot.id;
-      }
-      return fromJson(data);
+      return docSnapshot.data()!;
     });
   }
 
   /// Fetches a collection of documents from Firestore and parses them.
   Future<ApiResult<List<T>>> getCollection<T>(
     String collectionPath,
-    T Function(Map<String, dynamic>) fromJson, {
-    Query Function(Query)? queryBuilder,
+    T Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+        fromFirestore,
+    Map<String, Object?> Function(T, SetOptions?) toFirestore, {
+    Query<T> Function(Query<T>)? queryBuilder,
     int? limit,
   }) async {
     _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      Query query = firestore!.collection(collectionPath);
+      Query<T> query = firestore!.collection(collectionPath).withConverter(
+            fromFirestore: fromFirestore,
+            toFirestore: toFirestore,
+          );
       if (queryBuilder != null) {
         query = queryBuilder(query);
       }
@@ -192,14 +198,7 @@ abstract class BaseRepository {
         query = query.limit(limit);
       }
       final querySnapshot = await query.get();
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        // Add document ID to the map if not already present
-        if (!data.containsKey('id')) {
-          data['id'] = doc.id;
-        }
-        return fromJson(data);
-      }).toList();
+      return querySnapshot.docs.map((doc) => doc.data()).toList();
     });
   }
 
@@ -207,12 +206,17 @@ abstract class BaseRepository {
   Future<ApiResult<String>> addDocument<T>(
     String collectionPath,
     T data,
-    Map<String, dynamic> Function(T) toJson,
+    T Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+        fromFirestore,
+    Map<String, Object?> Function(T, SetOptions?) toFirestore,
   ) async {
     _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      final docRef =
-          await firestore!.collection(collectionPath).add(toJson(data));
+      final collectionRef = firestore!.collection(collectionPath).withConverter(
+            fromFirestore: fromFirestore,
+            toFirestore: toFirestore,
+          );
+      final docRef = await collectionRef.add(data);
       return docRef.id;
     });
   }
@@ -222,15 +226,19 @@ abstract class BaseRepository {
     String collectionPath,
     String documentId,
     T data,
-    Map<String, dynamic> Function(T) toJson, {
+    T Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+        fromFirestore,
+    Map<String, Object?> Function(T, SetOptions?) toFirestore, {
     bool merge = false,
   }) async {
     _ensureFirestoreExists();
     return _firestoreOperation(() async {
-      await firestore!
-          .collection(collectionPath)
-          .doc(documentId)
-          .set(toJson(data), SetOptions(merge: merge));
+      final docRef =
+          firestore!.collection(collectionPath).doc(documentId).withConverter(
+                fromFirestore: fromFirestore,
+                toFirestore: toFirestore,
+              );
+      await docRef.set(data, SetOptions(merge: merge));
     });
   }
 
@@ -261,23 +269,21 @@ abstract class BaseRepository {
   Stream<ApiResult<T>> streamDocument<T>(
     String collectionPath,
     String documentId,
-    T Function(Map<String, dynamic>) fromJson,
+    T Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+        fromFirestore,
+    Map<String, Object?> Function(T, SetOptions?) toFirestore,
   ) {
     _ensureFirestoreExists();
-    return firestore!
-        .collection(collectionPath)
-        .doc(documentId)
-        .snapshots()
-        .map((snapshot) {
+    final docRef =
+        firestore!.collection(collectionPath).doc(documentId).withConverter(
+              fromFirestore: fromFirestore,
+              toFirestore: toFirestore,
+            );
+    return docRef.snapshots().map((snapshot) {
       if (!snapshot.exists) {
         return ApiResult<T>.failure('Document not found');
       }
-      final data = snapshot.data()! as Map<String, dynamic>;
-      // Add document ID to the map if not already present
-      if (!data.containsKey('id')) {
-        data['id'] = snapshot.id;
-      }
-      return ApiResult<T>.success(fromJson(data));
+      return ApiResult<T>.success(snapshot.data()!);
     }).handleError((e, stacktrace) {
       developer.log('Exception during Firestore stream operation: $e',
           error: e, stackTrace: stacktrace);
@@ -288,12 +294,17 @@ abstract class BaseRepository {
   /// Subscribes to a collection in Firestore, providing real-time updates.
   Stream<ApiResult<List<T>>> streamCollection<T>(
     String collectionPath,
-    T Function(Map<String, dynamic>) fromJson, {
-    Query Function(Query)? queryBuilder,
+    T Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+        fromFirestore,
+    Map<String, Object?> Function(T, SetOptions?) toFirestore, {
+    Query<T> Function(Query<T>)? queryBuilder,
     int? limit,
   }) {
     _ensureFirestoreExists();
-    Query query = firestore!.collection(collectionPath);
+    Query<T> query = firestore!.collection(collectionPath).withConverter(
+          fromFirestore: fromFirestore,
+          toFirestore: toFirestore,
+        );
     if (queryBuilder != null) {
       query = queryBuilder(query);
     }
@@ -302,14 +313,7 @@ abstract class BaseRepository {
     }
 
     return query.snapshots().map((snapshot) {
-      final documents = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        // Add document ID to the map if not already present
-        if (!data.containsKey('id')) {
-          data['id'] = doc.id;
-        }
-        return fromJson(data);
-      }).toList();
+      final documents = snapshot.docs.map((doc) => doc.data()).toList();
       return ApiResult<List<T>>.success(documents);
     }).handleError((e, stacktrace) {
       developer.log('Exception during Firestore stream operation: $e',
