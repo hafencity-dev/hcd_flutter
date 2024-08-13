@@ -32,11 +32,15 @@ abstract class BaseRepository {
   final FirebaseFirestore? firestore;
   final FirebasePerformance _performance = FirebasePerformance.instance;
 
+  static int _totalReadCount = 0;
+  static int _totalWriteCount = 0;
   int _readCount = 0;
   int _writeCount = 0;
 
   int get firestoreReads => _readCount;
   int get firestoreWrites => _writeCount;
+  static int get totalFirestoreReads => _totalReadCount;
+  static int get totalFirestoreWrites => _totalWriteCount;
 
   BaseRepository({this.client, this.baseUrl, this.firestore}) {
     if (client == null && firestore == null) {
@@ -140,11 +144,13 @@ abstract class BaseRepository {
   /// Increments the read count
   void _incrementReadCount([int count = 1]) {
     _readCount += count;
+    _totalReadCount += count;
   }
 
   /// Increments the write count
   void _incrementWriteCount() {
     _writeCount++;
+    _totalWriteCount++;
   }
 
   /// Increments a specific trace in Firebase Performance
@@ -425,6 +431,16 @@ abstract class BaseRepository {
     return {
       'read_count': _readCount,
       'write_count': _writeCount,
+      'total_read_count': _totalReadCount,
+      'total_write_count': _totalWriteCount,
+    };
+  }
+
+  /// Gets the total analytics data across all instances
+  static Map<String, int> getTotalAnalyticsData() {
+    return {
+      'total_read_count': _totalReadCount,
+      'total_write_count': _totalWriteCount,
     };
   }
 }
