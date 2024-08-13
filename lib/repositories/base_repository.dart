@@ -360,10 +360,10 @@ abstract class BaseRepository {
     }
 
     return query.snapshots().map((snapshot) {
-      final docsCount = snapshot.docs.length;
       _incrementReadCount(snapshot.docChanges.length);
       _incrementTrace('firestore_stream_reads', 1);
-      _incrementTrace('firestore_stream_documents_read', docsCount);
+      _incrementTrace(
+          'firestore_stream_documents_read', snapshot.docChanges.length);
 
       final documents = snapshot.docs.map((doc) => doc.data()).toList();
       return ApiResult<List<T>>.success(documents);
