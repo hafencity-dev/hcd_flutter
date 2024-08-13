@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 
 /// Encapsulates the result of an API call, holding either data or an error message.
 class ApiResult<T> {
@@ -29,6 +30,13 @@ abstract class BaseRepository {
   final http.Client? client;
   final String? baseUrl;
   final FirebaseFirestore? firestore;
+  final FirebasePerformance _performance = FirebasePerformance.instance;
+
+  int _readCount = 0;
+  int _writeCount = 0;
+
+  int get firestoreReads => _readCount;
+  int get firestoreWrites => _writeCount;
 
   BaseRepository({this.client, this.baseUrl, this.firestore}) {
     if (client == null && firestore == null) {
@@ -52,11 +60,6 @@ abstract class BaseRepository {
       };
 
   /// Builds headers for API requests, including custom headers and optionally an authentication token.
-  ///
-  /// [customHeaders]: Additional headers to include in the request.
-  /// [includeAuthToken]: Whether to include the authentication token in the headers.
-  ///
-  /// Returns a map of headers.
   Future<Map<String, String>> _buildHeaders(
       Map<String, String>? customHeaders, bool includeAuthToken) async {
     final headers = {...defaultHeaders};
@@ -70,9 +73,6 @@ abstract class BaseRepository {
   }
 
   /// Sends a generic HTTP request and parses the response.
-  ///
-  /// [requestFunction]: The HTTP request function to execute.
-  /// [fromJson]: A function to parse the JSON response into a model of type [T].
   Future<ApiResult<T>> _sendRequest<T>(
       Future<http.Response> Function() requestFunction,
       T Function(Map<String, dynamic>) fromJson) async {
@@ -95,11 +95,6 @@ abstract class BaseRepository {
   }
 
   /// Executes a GET request to the specified [path] and parses the response.
-  ///
-  /// [path]: The API endpoint to send the GET request to.
-  /// [fromJson]: A function to parse the JSON response into a model of type [T].
-  /// [customHeaders]: Additional headers to include in the request.
-  /// [includeAuthToken]: Whether to include the authentication token in the headers.
   Future<ApiResult<T>> get<T>(
       String path, T Function(Map<String, dynamic>) fromJson,
       {Map<String, String>? customHeaders,
@@ -112,12 +107,6 @@ abstract class BaseRepository {
   }
 
   /// Executes a POST request to the specified [path] with the given [body] and parses the response.
-  ///
-  /// [path]: The API endpoint to send the POST request to.
-  /// [body]: The body of the POST request.
-  /// [fromJson]: A function to parse the JSON response into a model of type [T].
-  /// [customHeaders]: Additional headers to include in the request.
-  /// [includeAuthToken]: Whether to include the authentication token in the headers.
   Future<ApiResult<T>> post<T>(String path, Map<String, dynamic> body,
       T Function(Map<String, dynamic>) fromJson,
       {Map<String, String>? customHeaders,
@@ -131,12 +120,6 @@ abstract class BaseRepository {
   }
 
   /// Executes a PUT request to the specified [path] with the given [body] and parses the response.
-  ///
-  /// [path]: The API endpoint to send the PUT request to.
-  /// [body]: The body of the PUT request.
-  /// [fromJson]: A function to parse the JSON response into a model of type [T].
-  /// [customHeaders]: Additional headers to include in the request.
-  /// [includeAuthToken]: Whether to include the authentication token in the headers.
   Future<ApiResult<T>> put<T>(String path, Map<String, dynamic> body,
       T Function(Map<String, dynamic>) fromJson,
       {Map<String, String>? customHeaders,
@@ -149,6 +132,29 @@ abstract class BaseRepository {
         fromJson);
   }
 
+  /// Creates a trace for Firestore operations
+  Trace _getTrace(String operationType) {
+    return _performance.newTrace('firestore_$operationType');
+  }
+
+  /// Increments the read count
+  void _incrementReadCount([int count = 1]) {
+    _readCount += count;
+  }
+
+  /// Increments the write count
+  void _incrementWriteCount() {
+    _writeCount++;
+  }
+
+  /// Increments a specific trace in Firebase Performance
+  void _incrementTrace(String traceName, int incrementBy) {
+    final trace = _performance.newTrace(traceName);
+    trace.start();
+    trace.incrementMetric('count', incrementBy);
+    trace.stop();
+  }
+
   /// Fetches a document from Firestore and parses it.
   Future<ApiResult<T>> getDocument<T>(
     String collectionPath,
@@ -158,6 +164,8 @@ abstract class BaseRepository {
     Map<String, Object?> Function(T, SetOptions?) toFirestore,
   ) async {
     _ensureFirestoreExists();
+    final trace = _getTrace('read');
+    await trace.start();
     return _firestoreOperation(() async {
       final docRef =
           firestore!.collection(collectionPath).doc(documentId).withConverter(
@@ -165,6 +173,8 @@ abstract class BaseRepository {
                 toFirestore: toFirestore,
               );
       final docSnapshot = await docRef.get();
+      _incrementReadCount();
+      trace.incrementMetric('document_reads', 1);
       if (!docSnapshot.exists) {
         throw FirebaseException(
           plugin: 'cloud_firestore',
@@ -172,6 +182,7 @@ abstract class BaseRepository {
           code: 'document-not-found',
         );
       }
+      await trace.stop();
       return docSnapshot.data()!;
     });
   }
@@ -186,6 +197,8 @@ abstract class BaseRepository {
     int? limit,
   }) async {
     _ensureFirestoreExists();
+    final trace = _getTrace('read');
+    await trace.start();
     return _firestoreOperation(() async {
       Query<T> query = firestore!.collection(collectionPath).withConverter(
             fromFirestore: fromFirestore,
@@ -198,6 +211,10 @@ abstract class BaseRepository {
         query = query.limit(limit);
       }
       final querySnapshot = await query.get();
+      _incrementReadCount(querySnapshot.size);
+      trace.incrementMetric('collection_reads', 1);
+      trace.incrementMetric('documents_read', querySnapshot.size);
+      await trace.stop();
       return querySnapshot.docs.map((doc) => doc.data()).toList();
     });
   }
@@ -211,12 +228,17 @@ abstract class BaseRepository {
     Map<String, Object?> Function(T, SetOptions?) toFirestore,
   ) async {
     _ensureFirestoreExists();
+    final trace = _getTrace('write');
+    await trace.start();
     return _firestoreOperation(() async {
       final collectionRef = firestore!.collection(collectionPath).withConverter(
             fromFirestore: fromFirestore,
             toFirestore: toFirestore,
           );
       final docRef = await collectionRef.add(data);
+      _incrementWriteCount();
+      trace.incrementMetric('document_writes', 1);
+      await trace.stop();
       return docRef.id;
     });
   }
@@ -232,6 +254,8 @@ abstract class BaseRepository {
     bool merge = false,
   }) async {
     _ensureFirestoreExists();
+    final trace = _getTrace('write');
+    await trace.start();
     return _firestoreOperation(() async {
       final docRef =
           firestore!.collection(collectionPath).doc(documentId).withConverter(
@@ -239,6 +263,9 @@ abstract class BaseRepository {
                 toFirestore: toFirestore,
               );
       await docRef.set(data, SetOptions(merge: merge));
+      _incrementWriteCount();
+      trace.incrementMetric('document_writes', 1);
+      await trace.stop();
     });
   }
 
@@ -249,8 +276,13 @@ abstract class BaseRepository {
     Map<String, dynamic> data,
   ) async {
     _ensureFirestoreExists();
+    final trace = _getTrace('write');
+    await trace.start();
     return _firestoreOperation(() async {
       await firestore!.collection(collectionPath).doc(documentId).update(data);
+      _incrementWriteCount();
+      trace.incrementMetric('document_writes', 1);
+      await trace.stop();
     });
   }
 
@@ -260,8 +292,13 @@ abstract class BaseRepository {
     String documentId,
   ) async {
     _ensureFirestoreExists();
+    final trace = _getTrace('delete');
+    await trace.start();
     return _firestoreOperation(() async {
       await firestore!.collection(collectionPath).doc(documentId).delete();
+      _incrementWriteCount();
+      trace.incrementMetric('document_deletes', 1);
+      await trace.stop();
     });
   }
 
@@ -279,7 +316,11 @@ abstract class BaseRepository {
               fromFirestore: fromFirestore,
               toFirestore: toFirestore,
             );
+
     return docRef.snapshots().map((snapshot) {
+      _incrementReadCount();
+      _incrementTrace('firestore_stream_reads', 1);
+
       if (!snapshot.exists) {
         return ApiResult<T>.failure('Document not found');
       }
@@ -313,6 +354,11 @@ abstract class BaseRepository {
     }
 
     return query.snapshots().map((snapshot) {
+      final docsCount = snapshot.docs.length;
+      _incrementReadCount(snapshot.docChanges.length);
+      _incrementTrace('firestore_stream_reads', 1);
+      _incrementTrace('firestore_stream_documents_read', docsCount);
+
       final documents = snapshot.docs.map((doc) => doc.data()).toList();
       return ApiResult<List<T>>.success(documents);
     }).handleError((e, stacktrace) {
@@ -372,5 +418,13 @@ abstract class BaseRepository {
     if (firestore == null) {
       throw StateError('Firestore is not initialized');
     }
+  }
+
+  /// Gets the current analytics data
+  Map<String, int> getAnalyticsData() {
+    return {
+      'read_count': _readCount,
+      'write_count': _writeCount,
+    };
   }
 }
