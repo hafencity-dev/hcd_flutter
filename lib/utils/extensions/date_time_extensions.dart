@@ -76,20 +76,28 @@ extension DateTimeExtensions on DateTime {
     final language = locale?.languageCode ?? 'en';
     final messages = _getTimeAgoMessages(language);
 
+    String timeString;
     if (difference.inDays > 365) {
       return format(format: 'yyyy-MM-dd', locale: locale);
     } else if (difference.inDays > 30) {
       final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? messages['month'] : messages['months']}';
+      timeString =
+          '$months ${months == 1 ? messages['month'] : messages['months']}';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? messages['day'] : messages['days']}';
+      timeString =
+          '${difference.inDays} ${difference.inDays == 1 ? messages['day'] : messages['days']}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? messages['hour'] : messages['hours']}';
+      timeString =
+          '${difference.inHours} ${difference.inHours == 1 ? messages['hour'] : messages['hours']}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? messages['minute'] : messages['minutes']}';
+      timeString =
+          '${difference.inMinutes} ${difference.inMinutes == 1 ? messages['minute'] : messages['minutes']}';
     } else {
       return messages['justNow'] ?? 'just now';
     }
+
+    return '${messages['prefix'] ?? ''}$timeString${messages['suffix'] ?? ''}'
+        .trim();
   }
 
   /// Formats the [DateTime] to a localized string representation.
@@ -139,6 +147,8 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
   switch (languageCode) {
     case 'es':
       return {
+        'prefix': 'hace ',
+        'suffix': '',
         'month': 'mes',
         'months': 'meses',
         'day': 'día',
@@ -151,6 +161,8 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
       };
     case 'fr':
       return {
+        'prefix': 'il y a ',
+        'suffix': '',
         'month': 'mois',
         'months': 'mois',
         'day': 'jour',
@@ -163,10 +175,12 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
       };
     case 'de':
       return {
+        'prefix': 'vor ',
+        'suffix': '',
         'month': 'Monat',
-        'months': 'Monate',
+        'months': 'Monaten',
         'day': 'Tag',
-        'days': 'Tage',
+        'days': 'Tagen',
         'hour': 'Stunde',
         'hours': 'Stunden',
         'minute': 'Minute',
@@ -175,6 +189,8 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
       };
     case 'zh':
       return {
+        'prefix': '',
+        'suffix': '前',
         'month': '个月',
         'months': '个月',
         'day': '天',
@@ -187,6 +203,8 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
       };
     case 'ja':
       return {
+        'prefix': '',
+        'suffix': '前',
         'month': 'ヶ月',
         'months': 'ヶ月',
         'day': '日',
@@ -199,6 +217,8 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
       };
     case 'ar':
       return {
+        'prefix': 'منذ ',
+        'suffix': '',
         'month': 'شهر',
         'months': 'أشهر',
         'day': 'يوم',
@@ -211,6 +231,8 @@ Map<String, String> _getTimeAgoMessages(String languageCode) {
       };
     default:
       return {
+        'prefix': '',
+        'suffix': ' ago',
         'month': 'month',
         'months': 'months',
         'day': 'day',
