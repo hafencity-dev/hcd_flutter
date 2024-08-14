@@ -10,19 +10,33 @@ class ApiResult<T> {
   final T? data;
   final String? errorMessage;
   final bool isSuccess;
+  final Exception? exception;
 
-  ApiResult._({this.data, this.errorMessage, required this.isSuccess});
+  ApiResult._(
+      {this.data, this.errorMessage, required this.isSuccess, this.exception});
 
   factory ApiResult.success(T data) {
     return ApiResult._(data: data, isSuccess: true);
   }
 
-  factory ApiResult.failure(String? errorMessage) {
+  factory ApiResult.failure(String? errorMessage, {Exception? exception}) {
     return ApiResult._(errorMessage: errorMessage, isSuccess: false);
   }
 
   /// Returns true if the call was not successful (data is not present).
   bool get isFailure => !isSuccess;
+
+  /// Executes the appropriate function based on the result state.
+  R when<R>({
+    required R Function(T data) success,
+    required R Function(String? error, Exception? exception) failure,
+  }) {
+    if (isSuccess) {
+      return success(data as T);
+    } else {
+      return failure(errorMessage, exception);
+    }
+  }
 }
 
 /// An abstract base class for repositories that interact with REST APIs and/or Firestore.
