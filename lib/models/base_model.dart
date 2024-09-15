@@ -1,17 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-abstract class BaseModel {
+abstract class Model {
+  Map<String, dynamic> toJson();
+}
+
+abstract class BaseModel extends Model {
   final String? id;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  const BaseModel({
+  BaseModel({
     required this.id,
     required this.createdAt,
     required this.updatedAt,
   });
 
+  @override
   Map<String, dynamic> toJson();
 }
 
