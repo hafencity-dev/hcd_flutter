@@ -9,11 +9,11 @@ environment:
 
 dependencies:
   auto_route: ^8.1.4
-  cloud_firestore: ^4.14.0
+  cloud_firestore: ^5.4.4
   decimal: ^3.0.2
   equatable: ^2.0.5
-  firebase_auth: ^4.16.0
-  firebase_performance: ^0.9.4+7
+  firebase_auth: ^5.3.1
+  firebase_performance: ^0.10.0+8
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.0
