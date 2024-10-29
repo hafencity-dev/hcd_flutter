@@ -55,7 +55,7 @@ class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
       // Handle Unix timestamp in seconds with decimal places
       return DateTime.fromMillisecondsSinceEpoch((value * 1000).round());
     }
-    throw ArgumentError('Unsupported timestamp format: $value');
+    return null;
   }
 
   @override
